@@ -118,6 +118,7 @@ class HasSubobjectClassifier (Ω : 𝓒) where
   true : ⊤_ 𝓒 ⟶ Ω
   Ω_axiom {a d : 𝓒} : ∀ f : a ⟶ d, Mono f → ∃! χ : d ⟶ Ω, IsPullback f (terminal.from a) χ true
 
+-- TODO: «CH.3».«§3.6».terminal_idと同じ内容なのでまとめる
 lemma terminal.fromTiso1 [HasTerminal 𝓒]: terminal.from (⊤_ 𝓒) = 𝟙 _ := terminal.hom_ext (terminal.from (⊤_ 𝓒)) _
 
 lemma SubobjectClassifier.self_id {Ω : 𝓒} {χtrue : Ω ⟶ Ω} {true : ⊤_ 𝓒 ⟶ Ω}

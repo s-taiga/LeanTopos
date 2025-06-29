@@ -192,6 +192,59 @@ theorem «Exercise 4» [ElementaryTopos Ω] : Epi f ↔ ∃ g : fa ≅ b, (fstar
   intro ⟨g, hg⟩
   sorry
 
+variable (f)
+lemma eqPushout : ∃ (r : 𝓒) (p q : b ⟶ r), IsPushout f f p q := by
+  have : HasPushout f f := by
+    infer_instance
+  let r := pushout f f
+  let p := pushout.inl f f
+  let q := pushout.inr f f
+  use r, p, q
+  apply IsPushout.mk
+  . constructor
+    apply pushoutIsPushout
+  constructor
+  apply pushout.condition
+
+lemma fFactor [ElementaryTopos Ω] : ∃ (fa : 𝓒) (fstar' : a ⟶ fa) (imf' : fa ⟶ b),
+    fstar' ≫ imf' = f ∧ Epi fstar' ∧ Mono imf' ∧
+    ∀ {c : 𝓒} (u : a ⟶ c) (v : c ⟶ b) (hu : Epi u) (hv : Mono v) (huv : u ≫ v = f),
+    ∃! k : fa ⟶ c, fstar' ≫ k = u ∧ k ≫ v = imf' ∧ IsIso k
+    := by
+  have ⟨r, p, q, h⟩ := eqPushout f
+  let fa := equalizer p q
+  let fstar' := equalizer.lift f h.w
+  let imf' := equalizer.ι p q
+  use fa, fstar', imf'
+  constructor
+  . rw [equalizer.lift_ι]
+  constructor
+  . apply Corollary h (Ω := Ω)
+  constructor
+  . apply himf
+  have hfstar : fstar' = fstar h := by dsimp [fstar]
+  have himf : imf' = imf := by dsimp [imf]
+  rw [hfstar, himf]
+  intro c
+  apply «Theorem 2» h Ω
+
+variable (Ω)
+abbrev fa' : 𝓒 := fFactor f (Ω := Ω) |>.choose
+notation f ":'" Ω "(" a ")" => fa' Ω f (a := a)
+abbrev fstar' : a ⟶ f:'Ω(a) := fFactor f (Ω := Ω) |>.choose_spec |>.choose
+abbrev im : f:'Ω(a) ⟶ b := fFactor f (Ω := Ω) |>.choose_spec |>.choose_spec |>.choose
+notation f ":'" Ω "*'" => fstar' Ω f
+
+def epiMonoFactor : (f:'Ω*') ≫ (im Ω f) = f
+  := fFactor f (Ω := Ω) |>.choose_spec |>.choose_spec |>.choose_spec |>.1
+def epiFstar : Epi (f:'Ω*')
+  := fFactor f (Ω := Ω) |>.choose_spec |>.choose_spec |>.choose_spec |>.2.1
+def monoImage : Mono (im Ω f)
+  := fFactor f (Ω := Ω) |>.choose_spec |>.choose_spec |>.choose_spec |>.2.2.1
+def epiMonoUniversal : ∀ {c : 𝓒} (u : a ⟶ c) (v : c ⟶ b) (hu : Epi u) (hv : Mono v) (huv : u ≫ v = f),
+    ∃! k : f:'Ω(a) ⟶ c, f:'Ω*' ≫ k = u ∧ k ≫ v = im Ω f ∧ IsIso k
+  := fFactor f (Ω := Ω) |>.choose_spec |>.choose_spec |>.choose_spec |>.2.2.2
+
 end «§5.2»
 
 namespace «§5.3»
@@ -559,3 +612,8 @@ theorem «(ii)» [ElementaryTopos Ω] [WellPointed 𝓒] : injective f ↔ Mono 
   apply hxy
 
 -- TODO: この後のモノイドの内容はM-Setの圏が定義できていないのでスキップ
+end «Theorem 1»
+
+end «§5.5»
+
+end «CH.5»

@@ -1126,7 +1126,7 @@ def negT : Ω ⟶ Ω := χ «CH.5».«§5.4».false' (element.mono _)
 
 def conT : Ω ⨯ Ω ⟶ Ω := χ (prod.lift true true) (element.mono _)
 
-abbrev disMor := coprod.desc ((prod.leftUnitor Ω).inv ≫ prod.map true (𝟙 Ω)) ((prod.rightUnitor Ω).inv ≫ prod.map (𝟙 Ω) true)
+abbrev disMor := coprod.desc (prod.lift (true' Ω) (𝟙 _)) (prod.lift (𝟙 _) (true' Ω))
 abbrev Dis := «CH.5».«§5.2».fa' Ω <| disMor (Ω := Ω)
 def imDisT : (Dis (Ω := Ω)) ⟶ Ω ⨯ Ω := «CH.5».«§5.2».im Ω _
 def disT : Ω ⨯ Ω ⟶ Ω := χ imDisT <| «CH.5».«§5.2».monoImage Ω _

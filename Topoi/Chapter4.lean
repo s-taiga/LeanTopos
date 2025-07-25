@@ -35,6 +35,38 @@ def «isomorphic subobjects» (f : a ⟶ d) (g : b ⟶ d) : Prop := f ⊆ₛ g �
 
 infix:60 " ≃ₛ " => «isomorphic subobjects»
 
+example {a b d : 𝓒} {f : a ⟶ d} {hf : Mono f} {g : b ⟶ d} {hg : Mono g} {h : f ≃ₛ g}
+  : Nonempty (a ≅ b) := by
+  have ⟨⟨h, hh⟩, ⟨i, hi⟩⟩ := h
+  constructor
+  apply show a ≅ b from {
+    hom := h,
+    inv := i,
+    hom_inv_id := by
+      apply cancel_mono f |>.mp
+      rw [assoc, hi, hh, id_comp]
+    inv_hom_id := by
+      apply cancel_mono g |>.mp
+      rw [assoc, hh, hi, id_comp]
+  }
+
+lemma equiv_iso {a b d : 𝓒} {f : a ⟶ d} {g : b ⟶ d} [Mono f] [Mono g]
+  {i : a ⟶ b} (hi : i ≫ g = f) {j : b ⟶ a} (hj : j ≫ f = g) : IsIso i ∧ IsIso j := by
+  constructor
+  . constructor
+    use j
+    constructor
+    . apply cancel_mono f |>.mp
+      rw [assoc, hj, hi, id_comp]
+    apply cancel_mono g |>.mp
+    rw [assoc, hi, hj, id_comp]
+  use i
+  constructor
+  . apply cancel_mono g |>.mp
+    rw [assoc, hi, hj, id_comp]
+  . apply cancel_mono f |>.mp
+    rw [assoc, hj, hi, id_comp]
+
 lemma refl : f ≃ₛ f := by
   constructor <;> apply «(i) reflective»
 lemma symm : f ≃ₛ g → g ≃ₛ f := by

@@ -20,11 +20,6 @@ end «§6.1»
 namespace «§6.2»
 -- Propositions and truth-values
 
--- inductive Two | Zero | One
-
--- instance : One Two := ⟨.One⟩
--- instance : Zero Two := ⟨.Zero⟩
-
 abbrev Two := Fin 2
 
 namespace Two
@@ -743,12 +738,6 @@ def tautology (B : Type*) (α : Φ) [BooleanAlgebra B] : Prop := ∀ (V' : Φ₀
 abbrev «B-valid» (B : Type*) [BooleanAlgebra B] := tautology (B := B)
 infix:50 " ⊨ᵇᵃ " => tautology
 
-lemma self_inf (a : B) : a ⊓ a = a := by
-  apply le_antisymm
-  . apply inf_le_left
-  apply le_inf
-  <;> apply le_refl
-
 theorem «Soundness Theorem For B-Validity» : ∀ α, ⊢ᶜˡ α → B ⊨ᵇᵃ α := by
   intro α hinf V'
   induction hinf with
@@ -756,13 +745,13 @@ theorem «Soundness Theorem For B-Validity» : ∀ α, ⊢ᶜˡ α → B ⊨ᵇ�
     match h with
     | .I α' =>
       dsimp [V, BAimp]
-      rw [self_inf, compl_sup_eq_top]
+      rw [inf_idem, compl_sup_eq_top]
     | .II α' β' =>
       dsimp [V, BAimp]
       rw [
         «§6.4».«Exercise 2».«(4)», «§6.4».«(b)»,
         sup_assoc, compl_sup_eq_top, sup_top_eq,
-        sup_comm, ← sup_assoc, sup_compl_eq_top, top_sup_eq, self_inf]
+        sup_comm, ← sup_assoc, sup_compl_eq_top, top_sup_eq, inf_idem]
     | .III α' β' γ' =>
       dsimp [V, BAimp]
       set a := V V' α'
@@ -1122,18 +1111,18 @@ variable {Ω : 𝓒} [ElementaryTopos Ω]
 lemma element.mono {a : 𝓒} (x : element a) : Mono x := by
   apply «CH.3».«§3.6».Excercises.«3»
 
-def negT : Ω ⟶ Ω := χ «CH.5».«§5.4».false' (element.mono _)
+def negT : Ω ⟶ Ω := χ <|.mk «CH.5».«§5.4».false'
 
-def conT : Ω ⨯ Ω ⟶ Ω := χ (prod.lift true true) (element.mono _)
+def conT : Ω ⨯ Ω ⟶ Ω := χ <|.mk (prod.lift true true)
 
 abbrev disMor := coprod.desc (prod.lift (true' Ω) (𝟙 _)) (prod.lift (𝟙 _) (true' Ω))
 abbrev Dis := «CH.5».«§5.2».fa' Ω <| disMor (Ω := Ω)
 def imDisT : (Dis (Ω := Ω)) ⟶ Ω ⨯ Ω := «CH.5».«§5.2».im Ω _
-def disT : Ω ⨯ Ω ⟶ Ω := χ imDisT <| «CH.5».«§5.2».monoImage Ω _
+def disT : Ω ⨯ Ω ⟶ Ω := χ ⟨_, imDisT, «CH.5».«§5.2».monoImage Ω _⟩
 
 abbrev ImpT : 𝓒 := equalizer (conT (Ω := Ω)) prod.fst
 abbrev e : (ImpT (Ω := Ω)) ⟶ Ω ⨯ Ω := equalizer.ι conT prod.fst
-def impT : Ω ⨯ Ω ⟶ Ω := χ e <| «CH.3».«§3.10».«theorem 1» _ _ _
+def impT : Ω ⨯ Ω ⟶ Ω := χ <|.mk e
 
 end «§6.6»
 
@@ -1161,7 +1150,7 @@ example {α : Φ} : 𝓒(Ω)⊨ α ⊃ₚₗ (α ∧ₚₗ α) := by
   set trtr := prod.lift (true (Ω := Ω)) (true (Ω := Ω))
   nth_rewrite 1 [← comp_id a]
   rw [← prod.comp_diag, assoc, ← prod.comp_lift]
-  let s := χ a («§6.6».element.mono a) (Ω := Ω)
+  let s := χ (.mk a) (Ω := Ω)
   -- have : a = prod.lift a a ≫ prod.fst := by
   --   rw [prod.lift_fst]
   -- nth_rewrite 1 [this]
@@ -1179,19 +1168,20 @@ variable (Ω)
 abbrev trtr : ⊤_ 𝓒 ⟶ Ω ⨯ Ω := prod.lift true true
 
 lemma l1 : trtr Ω ≫ conT = trtr Ω ≫ prod.fst := by
-  have ⟨hconTpb, _⟩ := χ.spec (trtr Ω) («§6.6».element.mono _) (Ω := Ω)
-  rw [conT, hconTpb.w, «CH.4».«§4.2».terminal.fromTiso1, id_comp, prod.lift_fst]
+  have ⟨hconTpb, _⟩ := χ.spec (.mk <| trtr Ω) (Ω := Ω)
+
+  rw [conT, hconTpb.w, «CH.3».«§3.6».terminal_id, id_comp, prod.lift_fst]
 
 abbrev trtrImpT : ⊤_ 𝓒 ⟶ ImpT (Ω := Ω) := equalizer.lift (trtr _) (l1 _)
 
 lemma l2 : trtrImpT Ω ≫ e = trtr Ω := equalizer.lift_ι _ _
 
 lemma l3 : trtr Ω ≫ impT = true (Ω := Ω) := by
-  have ⟨hePb, _⟩ := χ.spec (e (Ω := Ω)) («CH.3».«§3.10».«theorem 1» _ _ _) (Ω := Ω)
+  have ⟨hePb, _⟩ := χ.spec (.mk <| e (Ω := Ω)) (Ω := Ω)
   rw [← l2, assoc, impT, hePb.w, ← assoc, terminal.comp_from, «CH.3».«§3.6».terminal_id, id_comp]
 
 lemma l4 : trtr Ω ≫ conT = true (Ω := Ω) := by
-  have ⟨hconTpb, _⟩ := χ.spec (trtr Ω) («§6.6».element.mono _) (Ω := Ω)
+  have ⟨hconTpb, _⟩ := χ.spec (.mk <| trtr Ω) (Ω := Ω)
   rw [conT, hconTpb.w, «CH.3».«§3.6».terminal_id, id_comp]
 
 end «𝓒-semantics»
@@ -1204,19 +1194,18 @@ abbrev FALSE := «CH.5».«§5.4».false' (Ω := Ω)
 namespace «Theorem 1»
 
 lemma neg_1 : TRUE Ω ≫ negT = FALSE Ω := by
-  have ⟨hnegPb, _⟩ := χ.spec (FALSE Ω) («§6.6».element.mono _) (Ω := Ω)
+  have ⟨hnegPb, _⟩ := χ.spec (.mk <| FALSE Ω) (Ω := Ω)
   have : «CH.5».«§5.4».false (⊤_ 𝓒) = FALSE Ω := by
     dsimp [«CH.5».«§5.4».false, FALSE]
     rw [«CH.3».«§3.6».terminal_id, id_comp]
-  -- TODO: 結構しょっちゅう使うので補題にする
-  have hti : terminal.from (⊥_ 𝓒) = initial.to (⊤_ 𝓒) := by ext
-  have ⟨hfalsePb', huniq⟩ := hti ▸ this ▸ «CH.5».«§5.4».«Exercise 3» (⊤_ 𝓒) ▸ χ.spec (initial.to (⊤_ 𝓒)) («CH.3».«§3.16».«Theorem 1».«(4)» _) (Ω := Ω)
-  have := hfalsePb'.flip.paste_vert hnegPb
-  rw [«CH.3».«§3.6».terminal_id, comp_id] at this
-  apply huniq (TRUE Ω ≫ negT) this
+  sorry
+  -- have ⟨hfalsePb', huniq⟩ := «CH.5».«§5.4».init_top_eq_terminal_bot (𝓒 := 𝓒) ▸ this ▸ «CH.5».«§5.4».«Exercise 3» (⊤_ 𝓒) ▸ χ.spec (.mk <| initial.to (⊤_ 𝓒)) (Ω := Ω)
+  -- have := hfalsePb'.flip.paste_vert hnegPb
+  -- rw [«CH.3».«§3.6».terminal_id, comp_id] at this
+  -- apply huniq (TRUE Ω ≫ negT) this
 
 lemma neg_2 : FALSE Ω ≫ negT = TRUE Ω := by
-  have ⟨hnegPb, _⟩ := χ.spec (FALSE Ω) («§6.6».element.mono _) (Ω := Ω)
+  have ⟨hnegPb, _⟩ := χ.spec (.mk <| FALSE Ω) (Ω := Ω)
   rw [negT, hnegPb.w, «CH.3».«§3.6».terminal_id, id_comp]
 
 notation:80 f " ∩(" Ω ") " g => prod.lift f g ≫ «§6.6».conT (Ω := Ω)
